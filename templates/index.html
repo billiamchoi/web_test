@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>학교홈피</title>
+    <style>
+        .top-container {
+            margin-left: calc(50% - 250px);
+            width: 600px;
+        }
+        .img-container {
+            width: 500px;
+            display: flex;
+            margin-top: 20px;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .head-container {
+            width: 100%;
+            display: flex;
+            margin-top: 5px;
+            flex-direction: column;
+        }
+        .header-container {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .head {
+            text-align: center;
+            margin-bottom: -10px
+        }
+        .lower-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .delete-btn, .edit-btn {
+            margin-left: 5px
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <h2 class="head">학생 점수 관리 페이지</h2>
+    </div>
+    <div class="top-container">
+        <div class="img-container">
+            <img src=" {{ url_for('static', filename='school.jpeg')  }} "/>
+        </div>
+    </div>
+    <div class="lower-container">
+        <div class="input-container">
+            학생 이름 : <input id="student-name" type="text"/>
+            국어 : <input id="student-korean" type="number"/>
+            수학 : <input id="student-math" type="number"/>
+            영어 : <input id="student-english" type="number"/>
+
+        </div>
+    </div>
+    <div class="lower-container">
+        <button class = save-btn onclick="saveClick()">저장</button>
+        <button class = delete-btn onclick="deleteClick()">삭제</button>
+        <button class = edit-btn onclick="editClick()">수정</button>
+    </div>
+    <div class="lower-container">
+        <div>
+            국어 : <input name="student-radio" type="radio" value="korean"/>
+            수학 : <input name="student-radio" type="radio" value="math"/>
+            영어 : <input name="student-radio" type="radio" value="english"/>
+            <button class = align-btn onclick="alignClick()">정렬</button>
+        </div>
+    </div>
+    <div class="lower-container">
+        <div class="output-container">
+            <ul class="student-output">
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        $.ajax({
+            url: "/student_score",
+            method: "GET",
+            data: {},
+            success: (data) => {
+                for (let i of data) {
+                    $(".student-output").append(`
+                        <li>
+                            ${i.name}, 국어 : ${i.korean}, 수학 : ${i.math}, 영어 : ${i.english}
+                        </li>
+                    `)
+                }
+            }
+        })
+
+        saveClick = () => {
+            const std_name = $("#student-name").val()
+            const std_korean =$("#student-korean").val()
+            const std_math =$("#student-math").val()
+            const std_english =$("#student-english").val()
+
+            $.ajax({
+                url: "/student_score/create",
+                method: "POST",
+                data: {
+                    "name": std_name,
+                    "korean": std_korean,
+                    "math": std_math,
+                    "english": std_english
+                },
+                success: () => {
+                    alert("학생 점수 명단에 추가되었습니다.")
+                    location.reload()
+                }
+            })
+
+        }
+
+        editClick = () => {
+            const std_name = $("#student-name").val()
+            const std_korean =$("#student-korean").val()
+            const std_math =$("#student-math").val()
+            const std_english =$("#student-english").val()
+
+            $.ajax({
+                url: "/student_score/edit",
+                method: "PUT",
+                data: {
+                    "name": std_name,
+                    "korean": std_korean,
+                    "math": std_math,
+                    "english": std_english
+                },
+                success: () => {
+                    alert(`이름이 ${std_name}인 학생의 점수가 수정되었습니다.`)
+                    location.reload()
+                }
+            })
+        }
+
+        deleteClick = () => {
+            const std_name = $("#student-name").val()
+
+            $.ajax({
+                url: "/student_score/delete",
+                method: "DELETE",
+                data: {
+                    "name": std_name
+                },
+                success: () => {
+                    alert(`이름이 ${std_name}인 학생의 점수가 삭제되었습니다.`)
+                    location.reload()
+                }
+            })
+        }
+        
+
+        alignClick = () => {
+            const checkedValue = $("input[name='student-radio']:checked").val()
+            
+            switch (checkedValue) {
+                case "korean":
+                    koreanAlign()
+                    break;
+                case "math":
+                    mathAlign()
+                    break;
+                case "english":
+                    englishAlign()
+                    break;
+            }
+        }
+
+        koreanAlign = () => {
+            $.ajax({
+                url: "/student_score/kor_align",
+                method: "GET",
+                data: {},
+                success: (data) => {
+                    $(".student-output").empty()
+                    for (let i of data) {
+                        $(".student-output").append(`
+                            <li>
+                                ${i.name}, 국어 : ${i.korean}, 수학 : ${i.math}, 영어 : ${i.english}
+                            </li>
+                        `)
+                    }
+                }
+            })
+        }
+
+        mathAlign = () => {
+            $.ajax({
+                url: "/student_score/math_align",
+                method: "GET",
+                data: {},
+                success: (data) => {
+                    $(".student-output").empty()
+                    for (let i of data) {
+                        $(".student-output").append(`
+                            <li>
+                                ${i.name}, 국어 : ${i.korean}, 수학 : ${i.math}, 영어 : ${i.english}
+                            </li>
+                        `)
+                    }
+                }
+            })
+        }
+
+        englishAlign = () => {
+            $.ajax({
+                url: "/student_score/eng_align",
+                method: "GET",
+                data: {},
+                success: (data) => {
+                    $(".student-output").empty()
+                    for (let i of data) {
+                        $(".student-output").append(`
+                            <li>
+                                ${i.name}, 국어 : ${i.korean}, 수학 : ${i.math}, 영어 : ${i.english}
+                            </li>
+                        `)
+                    }
+                }
+            })
+        }
+
+
+
+
+
+    </script>
+</body>
+</html>
